@@ -12,3 +12,12 @@
   text-align: center;
   width: 34px;
 }
+
+.square.clickable:hover {
+  border: 2px solid;
+  border-color: coral;
+}
+
+.square:focus {
+  outline: none;
+}
