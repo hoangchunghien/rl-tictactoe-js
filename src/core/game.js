@@ -81,13 +81,13 @@ export const calculateReward = (game, player) => {
   } else {
     if (!winner) {
       // Reward for a draw game
-      return 5;
+      return 0;
     } else if (winner === player) {
       // Reward for win
-      return 100;
+      return 10;
     } else {
       // Reward for lose
-      return -100;
+      return -10;
     }
   }
 }

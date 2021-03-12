@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import Game from './components/Game';
-import { checkGameover, initGame, move } from './core/game';
+import { boardToString, checkGameover, initGame, move } from './core/game';
 import { RandomAgent, SarsaAgent } from './core/agent';
 import { select } from 'weighted';
 import { range, max } from 'lodash';
@@ -16,7 +16,7 @@ window.sarsaAgent = sarsaAgent;
 function App() {
   const [game, setGame] = useState(initGame())
   const [episode, setEpisode] = useState(1000);
-  const [t, setT] = useState(0);
+  const [t, setT] = useState(0); 
   const [isTraining, setIsTraining] = useState(false);
 
   const onMove = (location) => {
@@ -28,7 +28,10 @@ function App() {
     }
 
     const probs = sarsaAgent.policy(tempState);
-    console.log(probs)
+    console.log("Q")
+    console.log(sarsaAgent.Q[boardToString(tempState.board)]);
+    console.log("A")
+    console.log(probs);
     const agentMove = probs.indexOf(max(probs))
     const nextState = move(tempState, agentMove)
 

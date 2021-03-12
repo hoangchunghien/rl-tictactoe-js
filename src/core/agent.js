@@ -18,10 +18,11 @@ export class RandomAgent {
 
 
 export class SarsaAgent {
-  constructor(epsilon = 0.1, discount = 0.99, alpha=0.9, player=O) {
+  constructor(epsilon = 0.1, discount = 0.9, alpha=0.01, player=O) {
     this.epsilon = epsilon;
     this.discount = discount;
     this.alpha = alpha;
+    this.player = player;
 
     this._Q = {};
     this.Q = new Proxy(this._Q, {
@@ -40,8 +41,10 @@ export class SarsaAgent {
     const validMoves = getValidMoves(board);
     const boardString = boardToString(board);
     let A = range(0, 9, 0.0);
-    const bestScore = max(pullAt(clone(this.Q[boardString]), validMoves));
-    const bestAction = this.Q[boardString].indexOf(bestScore);
+    const cloned = clone(this.Q[boardString]);
+    const pulled = pullAt(cloned, validMoves);
+    const bestScore = max(pulled);
+    const bestAction = validMoves[pulled.indexOf(bestScore)];
     for (let i = 0; i < validMoves.length; i++) {
       const a = validMoves[i];
       A[a] = this.epsilon / validMoves.length;
@@ -57,7 +60,7 @@ export class SarsaAgent {
   }
 
   learn = (state, action, nextState, nextAction) => {
-    const reward = calculateReward(nextState, O);
+    const reward = calculateReward(nextState, this.player);
     const stateString = boardToString(state.board);
     const nextStateString = boardToString(nextState.board);
     const nextStateValue = nextState.gameover ? 0 : this.Q[nextStateString][nextAction];
