@@ -4,7 +4,7 @@ import Game from './components/Game';
 import { checkGameover, initGame, move } from './core/game';
 import { RandomAgent, SarsaAgent } from './core/agent';
 import { select } from 'weighted';
-import { range } from 'lodash';
+import { range, max } from 'lodash';
 
 import './App.css';
 
@@ -21,8 +21,15 @@ function App() {
 
   const onMove = (location) => {
     const tempState = move(game, location);
-    const probs = randomAgent.policy(tempState);
-    const agentMove = select(range(probs.length, probs))
+
+    if (tempState.gameover) {
+      setGame(tempState);
+      return;
+    }
+
+    const probs = sarsaAgent.policy(tempState);
+    console.log(probs)
+    const agentMove = probs.indexOf(max(probs))
     const nextState = move(tempState, agentMove)
 
     setGame(nextState);
@@ -38,26 +45,29 @@ function App() {
 
       // Random agent move first
       let probs = randomAgent.policy(state);
-      let action = select(range(probs.length, probs));
+      let action = select(range(probs.length), probs);
       state = move(state, action);
 
       // Training agent take one action
       probs = agent.policy(state);
-      action = select(range(probs.length, probs));
+      action = select(range(probs.length), probs);
       
       // Training
       let done = false;
       for (let j = 0; j <= 100; j++) {
-        state = move(state, action);
+        const tmpState = move(state, action);
         done = checkGameover(state.board);
         if (done) break;
 
-        probs = randomAgent.policy(state);
+        probs = randomAgent.policy(tmpState);
         const randomAction = select(range(probs.length), probs);
-        const nextState = move(state, randomAction);
+        const nextState = move(tmpState, randomAction);
 
-        probs = agent.policy(state);
-        const nextAction = select(range(probs.length), probs);
+        let nextAction = -1;
+        if (!nextState.gameover) {
+          probs = agent.policy(nextState);
+          nextAction = select(range(probs.length), probs);
+        }
 
         agent.learn(state, action, nextState, nextAction);
 
@@ -73,7 +83,6 @@ function App() {
     }
 
     setIsTraining(false);
-    setT(0);
   }
 
   return (
@@ -86,6 +95,9 @@ function App() {
         </div>
       </div>
       <Game {...game} onMove={onMove} />
+      <div>
+        <button onClick={() => setGame(initGame())}>Reset Game</button>
+      </div>
     </div>
   );
 }
