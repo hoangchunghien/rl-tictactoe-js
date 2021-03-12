@@ -19,7 +19,6 @@ export const move = (game, location) => {
   let { turn, board } = game;
 
   const validMoves = getValidMoves(board);
-  console.log(validMoves)
   if (!validMoves.includes(location)) {
     return game;
   }
@@ -73,4 +72,22 @@ export const checkGameover = (board) => {
 
 export const boardToString = (board) => {
   return board.join('')
+}
+
+export const calculateReward = (game, player) => {
+  const { gameover, winner } = game;
+  if (!gameover) {
+    return 0;
+  } else {
+    if (!winner) {
+      // Reward for a draw game
+      return 5;
+    } else if (winner === player) {
+      // Reward for win
+      return 100;
+    } else {
+      // Reward for lose
+      return -100;
+    }
+  }
 }
