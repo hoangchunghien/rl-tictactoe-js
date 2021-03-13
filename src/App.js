@@ -121,7 +121,7 @@ function App() {
     <div className="App">
       <Row justify="center" align="stretch" gutter={[16, 16]}>
         <Col>
-          <Card style={{ width: 360, height: "100%" }} title="SETTINGS">
+          <Card style={{ width: 420, height: "100%" }} title="SETTINGS">
             <Row>
               <Col><div className="status">Player <b style={{border: "solid 1px", padding: "3px"}}>X</b></div></Col>
               <Col></Col>
@@ -133,7 +133,7 @@ function App() {
           </Card>
         </Col>
         <Col>
-          <Card style={{ width: 360 }}>
+          <Card style={{ width: 420 }}>
             <Row justify="center" align="middle" gutter={[16, 16]}>
               <Col>
                 <Game {...game} onMove={onMove} />
@@ -165,7 +165,7 @@ function App() {
 
       <Row justify="center" align="stretch" gutter={[16, 16]} style={{marginTop: "16px"}}>
         <Col>
-          <Card title="TRAINING" style={{ width: 360 }}>
+          <Card title="TRAINING" style={{ width: 420 }}>
             <Row justify="center" align="middle" gutter={[8, 8]}>
               <Col>Episodes</Col>
               <Col>
@@ -201,7 +201,7 @@ function App() {
                     { title: "Total", dataIndex: "total", key: "total"},
                   ]}
                   dataSource={map(trainingResults, (it, index) => ({...it, index}))}
-                  pagination={{pageSize: 3}}
+                  pagination={{pageSize: 3, hideOnSinglePage: true, showLessItems: true}}
                 />
               </Col>
             </Row>
@@ -209,7 +209,7 @@ function App() {
         </Col>
 
         <Col>
-          <Card title="EVALUATE" style={{ width: 360 }}>
+          <Card title="EVALUATE" style={{ width: 420 }}>
             <Row justify="center" align="middle" gutter={[8, 8]}>
               <Col>Episodes</Col>
               <Col>
