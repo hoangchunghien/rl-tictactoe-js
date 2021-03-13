@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Row, Col } from "antd";
+import { Row, Col, Card, InputNumber, Button } from "antd";
 
 import Game from "./components/Game";
 import { boardToString, checkGameover, initGame, move } from "./core/game";
@@ -100,49 +100,63 @@ function App() {
     <div className="App">
       <Row justify="center" align="middle" gutter={[16, 16]}>
         <Col>
-          <Game {...game} onMove={onMove} />
-        </Col>
-      </Row>
+          <Card style={{ width: 360 }}>
+            <Row justify="center" align="middle" gutter={[16, 16]}>
+              <Col>
+                <Game {...game} onMove={onMove} />
+              </Col>
+            </Row>
 
-      <Row justify="center" align="middle" gutter={[16, 16]} style={{height: 60}}>
-        <Col>
-          <div>
-            <button
-              onClick={() => {
-                setGame(initGame());
-                sarsaAgent.newEpisode();
-              }}
+            <Row
+              justify="center"
+              align="middle"
+              gutter={[16, 16]}
+              style={{ height: 60 }}
             >
-              Reset Game
-            </button>
-          </div>
+              <Col>
+                <div>
+                  <button
+                    onClick={() => {
+                      setGame(initGame());
+                      sarsaAgent.newEpisode();
+                    }}
+                  >
+                    Reset Game
+                  </button>
+                </div>
+              </Col>
+            </Row>
+          </Card>
         </Col>
       </Row>
 
-      <Row justify="center" align="middle">
+      <Row justify="center" align="middle" gutter={[16, 16]}>
         <Col>
-          <div>
-            Training Episodes ({t}/{episode})
-          </div>
-        </Col>
-      </Row>
-
-      <Row justify="center" align="middle">
-        <Col>
-          <div>
-            <input
-              value={episode}
-              type="number"
-              onChange={(e) => setEpisode(e.target.value)}
-            />
-          </div>
-        </Col>
-        <Col>
-          <div>
-            <button onClick={() => training(sarsaAgent)} disabled={isTraining}>
-              Training
-            </button>
-          </div>
+          <Card title="TRAINING" style={{ width: 360 }}>
+            <Row justify="center" align="middle" gutter={[8, 8]}>
+              <Col>Episodes</Col>
+              <Col>
+                <div>
+                  <InputNumber
+                    value={episode}
+                    type="number"
+                    onChange={(e) => setEpisode(e.target.value)}
+                  />
+                </div>
+              </Col>
+              <Col>
+                <div>
+                  <Button
+                    type="primary"
+                    onClick={() => training(sarsaAgent)}
+                    disabled={isTraining}
+                  >
+                    Simulate
+                  </Button>
+                </div>
+              </Col>
+            </Row>
+          </Card>
         </Col>
       </Row>
     </div>
