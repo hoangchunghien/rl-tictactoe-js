@@ -13,7 +13,11 @@ const Square = ({ value, clickable, onClick = () => { } }) => {
   return (
     <button 
       className={classnames(classes)} 
-      onClick={onClick}
+      onClick={() => {
+        if (clickable) {
+          onClick();
+        }
+      }}
     >
       {value !== EMPTY ? value : ' '}
     </button>

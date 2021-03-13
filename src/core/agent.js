@@ -23,6 +23,7 @@ export class SarsaAgent {
     this.discount = discount;
     this.alpha = alpha;
     this.player = player;
+    this.episode = [];
 
     this._Q = {};
     this.Q = new Proxy(this._Q, {
@@ -67,5 +68,13 @@ export class SarsaAgent {
     const tdTarget = reward + this.discount * nextStateValue;
     const tdDelta = tdTarget - this.Q[stateString][action];
     this.Q[stateString][action] += this.alpha * tdDelta;
+  }
+
+  observe = (state, action) => {
+    this.episode.push([state, action]);
+  }
+
+  newEpisode = () => {
+    this.episode = [];
   }
 }

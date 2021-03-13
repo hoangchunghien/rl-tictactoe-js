@@ -4,7 +4,7 @@ import Game from './components/Game';
 import { boardToString, checkGameover, initGame, move } from './core/game';
 import { RandomAgent, SarsaAgent } from './core/agent';
 import { select } from 'weighted';
-import { range, max } from 'lodash';
+import { range, max, last } from 'lodash';
 
 import './App.css';
 
@@ -20,21 +20,29 @@ function App() {
   const [isTraining, setIsTraining] = useState(false);
 
   const onMove = (location) => {
-    const tempState = move(game, location);
+    const state = move(game, location);
+    
+    const probs = sarsaAgent.policy(state);
+    console.log("Q")
+    console.log(sarsaAgent.Q[boardToString(state.board)]);
+    console.log("A")
+    console.log(probs);
+    const action = probs.indexOf(max(probs))
 
-    if (tempState.gameover) {
-      setGame(tempState);
+    sarsaAgent.observe(state, action);
+    const memory = sarsaAgent.episode;
+    if (memory.length >= 2) {
+      const record1 = memory[memory.length - 2];
+      const record2 = memory[memory.length - 1];
+      sarsaAgent.learn(record1[0], record1[1], record2[0], record2[1]);
+    }
+
+    if (state.gameover) {
+      setGame(state);
       return;
     }
 
-    const probs = sarsaAgent.policy(tempState);
-    console.log("Q")
-    console.log(sarsaAgent.Q[boardToString(tempState.board)]);
-    console.log("A")
-    console.log(probs);
-    const agentMove = probs.indexOf(max(probs))
-    const nextState = move(tempState, agentMove)
-
+    const nextState = move(state, action);
     setGame(nextState);
   }
 
@@ -99,7 +107,10 @@ function App() {
       </div>
       <Game {...game} onMove={onMove} />
       <div>
-        <button onClick={() => setGame(initGame())}>Reset Game</button>
+        <button onClick={() => {
+          setGame(initGame())
+          sarsaAgent.newEpisode();
+        }}>Reset Game</button>
       </div>
     </div>
   );
