@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Row, Col, Card, InputNumber, Button } from "antd";
+import { Row, Col, Card, InputNumber, Button, Table } from "antd";
 
 import Game from "./components/Game";
-import { boardToString, checkGameover, initGame, move } from "./core/game";
+import { boardToString, checkGameover, initGame, move, X, O } from "./core/game";
+import { evaluate, PLAYLAST } from "./core/evaluation";
 import { RandomAgent, SarsaAgent } from "./core/agent";
 import { select } from "weighted";
-import { range, max } from "lodash";
+import { range, max, map } from "lodash";
 
 import "./App.css";
 
@@ -16,8 +17,12 @@ window.sarsaAgent = sarsaAgent;
 function App() {
   const [game, setGame] = useState(initGame());
   const [episode, setEpisode] = useState(1000);
+  const [evaluateEpisode, setEvaluateEpisode] = useState(1000);
+
   const [t, setT] = useState(0);
   const [isTraining, setIsTraining] = useState(false);
+  const [trainingResults, setTraningResults] = useState([]);
+  const [evaluateResults, setEvaluateResults] = useState([]);
 
   const onMove = (location) => {
     const state = move(game, location);
@@ -48,7 +53,7 @@ function App() {
 
   const training = (agent) => {
     setIsTraining(true);
-
+    const result = { win: 0, lose: 0, draw: 0, total: episode }
     for (let i = 1; i <= episode; i++) {
       setT(i);
 
@@ -84,17 +89,33 @@ function App() {
 
         done = checkGameover(nextState.board);
 
+        state = nextState;
+        action = nextAction;
         if (done) {
           break;
         }
+      }
 
-        state = nextState;
-        action = nextAction;
+      if (state.winner) {
+        if (state.winner == O) {
+          result.win += 1;
+        } else {
+          result.lose += 1;
+        }
+      } else {
+        result.draw += 1;
       }
     }
 
+    setTraningResults([result, ...trainingResults]);
+
     setIsTraining(false);
   };
+
+  const evaluateAgent = (agent) => {
+    const result = evaluate({ agent, againstAgent: randomAgent, playType: PLAYLAST, episodes: evaluateEpisode });
+    setEvaluateResults([result, ...evaluateResults]);
+  }
 
   return (
     <div className="App">
@@ -128,9 +149,7 @@ function App() {
             </Row>
           </Card>
         </Col>
-      </Row>
 
-      <Row justify="center" align="middle" gutter={[16, 16]}>
         <Col>
           <Card title="TRAINING" style={{ width: 360 }}>
             <Row justify="center" align="middle" gutter={[8, 8]}>
@@ -140,7 +159,7 @@ function App() {
                   <InputNumber
                     value={episode}
                     type="number"
-                    onChange={(e) => setEpisode(e.target.value)}
+                    onChange={(e) => setEpisode(e)}
                   />
                 </div>
               </Col>
@@ -154,6 +173,65 @@ function App() {
                     Simulate
                   </Button>
                 </div>
+              </Col>
+            </Row>
+
+            <Row gutter={[16, 16]}>
+              <Col>
+                <Table
+                  columns={[
+                    { title: "#", dataIndex: "index", key: "index" },
+                    { title: "Win", dataIndex: "win", key: "win" },
+                    { title: "Lose", dataIndex: "lose", key: "lose" },
+                    { title: "Draw", dataIndex: "draw", key: "draw" },
+                    { title: "Total", dataIndex: "total", key: "total"},
+                  ]}
+                  dataSource={map(trainingResults, (it, index) => ({...it, index}))}
+                  pagination={{pageSize: 3}}
+                />
+              </Col>
+            </Row>
+          </Card>
+        </Col>
+
+        <Col>
+          <Card title="EVALUATE" style={{ width: 360 }}>
+            <Row justify="center" align="middle" gutter={[8, 8]}>
+              <Col>Episodes</Col>
+              <Col>
+                <div>
+                  <InputNumber
+                    value={evaluateEpisode}
+                    type="number"
+                    onChange={(e) => setEvaluateEpisode(e)}
+                  />
+                </div>
+              </Col>
+              <Col>
+                <div>
+                  <Button
+                    type="primary"
+                    onClick={() => evaluateAgent(sarsaAgent)}
+                  >
+                    Evaluate
+                  </Button>
+                </div>
+              </Col>
+            </Row>
+
+            <Row gutter={[16, 16]}>
+              <Col>
+                <Table
+                  columns={[
+                    { title: "#", dataIndex: "index", key: "index" },
+                    { title: "Win", dataIndex: "win", key: "win" },
+                    { title: "Lose", dataIndex: "lose", key: "lose" },
+                    { title: "Draw", dataIndex: "draw", key: "draw" },
+                    { title: "Total", dataIndex: "total", key: "total"},
+                  ]}
+                  dataSource={map(evaluateResults, (it, index) => ({...it, index}))}
+                  pagination={{pageSize: 3, hideOnSinglePage: true, showLessItems: true}}
+                />
               </Col>
             </Row>
           </Card>

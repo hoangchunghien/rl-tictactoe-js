@@ -14,6 +14,10 @@ export class RandomAgent {
     }
     return A
   }
+
+  newEpisode = () => {}
+  observe = () => {}
+  learn = () => {}
 }
 
 
