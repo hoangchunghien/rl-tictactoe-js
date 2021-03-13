@@ -7,7 +7,7 @@ import { boardToString, getValidMoves } from '../core/game';
 import './Game.css';
 
 
-const Game = ({ turn, winner, gameover, board, onMove = f => f }) => {
+const Game = ({ turn, winner, gameover, board, evaluateBoard, onMove = f => f }) => {
   const status = `Player: ${turn}`;
 
   return (
@@ -31,6 +31,7 @@ const Game = ({ turn, winner, gameover, board, onMove = f => f }) => {
 
       <Board
         value={boardToString(board)}
+        evaluateBoard={evaluateBoard}
         validMoves={!gameover ? getValidMoves(board) : []}
         onClick={(location) => { onMove(location) }}
       />

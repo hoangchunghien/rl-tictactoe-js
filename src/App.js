@@ -62,6 +62,10 @@ function App() {
     playmode: true,
   });
 
+  const [evaluateBoard, setEvaluateBoard] = useState(
+    map(range(0, 9), () => null)
+  );
+
   useEffect(() => {
     const { turn } = game;
     let currentPlayer = null;
@@ -92,6 +96,7 @@ function App() {
       if (!game.gameover) {
         const state = move(game, action);
         setGame(state);
+        setEvaluateBoard(map(range(0, 9), () => null))
       }
     }
   });
@@ -123,6 +128,14 @@ function App() {
       episodes: evaluateEpisode,
     });
     setEvaluateResults([result, ...evaluateResults]);
+  };
+
+  const evaluateMove = (agent) => {
+    let score = agent.policy(game);
+    if (agent.Q) {
+      score = agent.Q[boardToString(game.board)];
+    }
+    setEvaluateBoard(score);
   };
 
   return (
@@ -167,12 +180,24 @@ function App() {
                     <Row gutter={8}>
                       <Col>Auto</Col>
                       <Col>
-                        <Switch size="small" checked={player1.playmode} onChange={e => setPlayer1({...player1, playmode: e})} />
+                        <Switch
+                          size="small"
+                          checked={player1.playmode}
+                          onChange={(e) =>
+                            setPlayer1({ ...player1, playmode: e })
+                          }
+                        />
                       </Col>
                     </Row>
                   </Col>
                   <Col>
-                    <Button size="small" disabled={player1.playmode}>Evaluate action</Button>
+                    <Button
+                      size="small"
+                      disabled={player1.playmode}
+                      onClick={() => evaluateMove(player1.agent.agent)}
+                    >
+                      Evaluate action
+                    </Button>
                   </Col>
                 </Row>
                 <Row></Row>
@@ -217,25 +242,32 @@ function App() {
                     <Row gutter={8}>
                       <Col>Auto</Col>
                       <Col>
-                        <Switch size="small" checked={player2.playmode} onChange={e => setPlayer2({...player2, playmode: e})} />
+                        <Switch
+                          size="small"
+                          checked={player2.playmode}
+                          onChange={(e) =>
+                            setPlayer2({ ...player2, playmode: e })
+                          }
+                        />
                       </Col>
                     </Row>
                   </Col>
                   <Col>
-                    <Button size="small" disabled={player2.playmode}>Evaluate action</Button>
+                    <Button size="small" disabled={player2.playmode} onClick={() => evaluateMove(player2.agent.agent)}>
+                      Evaluate action
+                    </Button>
                   </Col>
                 </Row>
                 <Row></Row>
               </Col>
             </Row>
-
           </Card>
         </Col>
         <Col>
           <Card style={{ width: 420 }}>
             <Row justify="center" align="middle" gutter={[16, 16]}>
               <Col>
-                <Game {...game} onMove={onMove} />
+                <Game {...game} onMove={onMove} evaluateBoard={evaluateBoard} />
               </Col>
             </Row>
 
