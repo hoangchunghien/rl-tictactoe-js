@@ -1,33 +1,33 @@
-import { useState } from 'react';
+import { useState } from "react";
+import { Row, Col } from "antd";
 
-import Game from './components/Game';
-import { boardToString, checkGameover, initGame, move } from './core/game';
-import { RandomAgent, SarsaAgent } from './core/agent';
-import { select } from 'weighted';
-import { range, max, last } from 'lodash';
+import Game from "./components/Game";
+import { boardToString, checkGameover, initGame, move } from "./core/game";
+import { RandomAgent, SarsaAgent } from "./core/agent";
+import { select } from "weighted";
+import { range, max } from "lodash";
 
-import './App.css';
+import "./App.css";
 
 const randomAgent = new RandomAgent();
 const sarsaAgent = new SarsaAgent();
 window.sarsaAgent = sarsaAgent;
 
-
 function App() {
-  const [game, setGame] = useState(initGame())
+  const [game, setGame] = useState(initGame());
   const [episode, setEpisode] = useState(1000);
-  const [t, setT] = useState(0); 
+  const [t, setT] = useState(0);
   const [isTraining, setIsTraining] = useState(false);
 
   const onMove = (location) => {
     const state = move(game, location);
-    
+
     const probs = sarsaAgent.policy(state);
-    console.log("Q")
+    console.log("Q");
     console.log(sarsaAgent.Q[boardToString(state.board)]);
-    console.log("A")
+    console.log("A");
     console.log(probs);
-    const action = probs.indexOf(max(probs))
+    const action = probs.indexOf(max(probs));
 
     sarsaAgent.observe(state, action);
     const memory = sarsaAgent.episode;
@@ -44,7 +44,7 @@ function App() {
 
     const nextState = move(state, action);
     setGame(nextState);
-  }
+  };
 
   const training = (agent) => {
     setIsTraining(true);
@@ -62,7 +62,7 @@ function App() {
       // Training agent take one action
       probs = agent.policy(state);
       action = select(range(probs.length), probs);
-      
+
       // Training
       let done = false;
       for (let j = 0; j <= 100; j++) {
@@ -83,7 +83,7 @@ function App() {
         agent.learn(state, action, nextState, nextAction);
 
         done = checkGameover(nextState.board);
-        
+
         if (done) {
           break;
         }
@@ -94,24 +94,57 @@ function App() {
     }
 
     setIsTraining(false);
-  }
+  };
 
   return (
     <div className="App">
-      <div className="training">
-        <div>Training Episodes ({t}/{episode})</div>
-        <div><input value={episode} type="number" onChange={(e) => setEpisode(e.target.value)} /></div>
-        <div>
-          <button onClick={() => training(sarsaAgent)} disabled={isTraining}>Training</button>
-        </div>
-      </div>
-      <Game {...game} onMove={onMove} />
-      <div>
-        <button onClick={() => {
-          setGame(initGame())
-          sarsaAgent.newEpisode();
-        }}>Reset Game</button>
-      </div>
+      <Row justify="center" align="middle" gutter={[16, 16]}>
+        <Col>
+          <Game {...game} onMove={onMove} />
+        </Col>
+      </Row>
+
+      <Row justify="center" align="middle" gutter={[16, 16]} style={{height: 60}}>
+        <Col>
+          <div>
+            <button
+              onClick={() => {
+                setGame(initGame());
+                sarsaAgent.newEpisode();
+              }}
+            >
+              Reset Game
+            </button>
+          </div>
+        </Col>
+      </Row>
+
+      <Row justify="center" align="middle">
+        <Col>
+          <div>
+            Training Episodes ({t}/{episode})
+          </div>
+        </Col>
+      </Row>
+
+      <Row justify="center" align="middle">
+        <Col>
+          <div>
+            <input
+              value={episode}
+              type="number"
+              onChange={(e) => setEpisode(e.target.value)}
+            />
+          </div>
+        </Col>
+        <Col>
+          <div>
+            <button onClick={() => training(sarsaAgent)} disabled={isTraining}>
+              Training
+            </button>
+          </div>
+        </Col>
+      </Row>
     </div>
   );
 }
