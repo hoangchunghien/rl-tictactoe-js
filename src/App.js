@@ -119,7 +119,19 @@ function App() {
 
   return (
     <div className="App">
-      <Row justify="center" align="middle" gutter={[16, 16]}>
+      <Row justify="center" align="stretch" gutter={[16, 16]}>
+        <Col>
+          <Card style={{ width: 360, height: "100%" }} title="SETTINGS">
+            <Row>
+              <Col><div className="status">Player <b style={{border: "solid 1px", padding: "3px"}}>X</b></div></Col>
+              <Col></Col>
+            </Row>
+
+            <Row>
+              <Col><div className="status">Player <b style={{border: "solid 1px", padding: "3px"}}>O</b></div></Col>
+            </Row>
+          </Card>
+        </Col>
         <Col>
           <Card style={{ width: 360 }}>
             <Row justify="center" align="middle" gutter={[16, 16]}>
@@ -149,7 +161,9 @@ function App() {
             </Row>
           </Card>
         </Col>
+      </Row>
 
+      <Row justify="center" align="stretch" gutter={[16, 16]} style={{marginTop: "16px"}}>
         <Col>
           <Card title="TRAINING" style={{ width: 360 }}>
             <Row justify="center" align="middle" gutter={[8, 8]}>

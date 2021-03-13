@@ -1,5 +1,6 @@
-import { max } from 'lodash';
+import { max, filter, map } from 'lodash';
 import { initGame, move } from './game';
+import { select } from 'weighted';
 
 export const PLAYFIRST = 'X';
 export const PLAYLAST = 'O';
@@ -16,11 +17,18 @@ export const evaluate = ({agent, againstAgent, playType=PLAYLAST, episodes=1000}
 
         for (var j = 0; j < 100; j++) {
             let probs = firstPlayer.policy(state);
-            let action = probs.indexOf(max(probs));
+            let maxProb = max(probs)
+            probs = map(probs, (it, index) => ({index, prob: it}))
+            let action = select(filter(probs, it => it.prob == maxProb));
+            action = action.index;
             state = move(state, action);
+
             if (!state.gameover) {
                 probs = lastPlayer.policy(state);
-                action = probs.indexOf(max(probs));
+                maxProb = max(probs)
+                probs = map(probs, (it, index) => ({index, prob: it}))
+                action = select(filter(probs, it => it.prob == maxProb));
+                action = action.index;
                 state = move(state, action);
             }
 
