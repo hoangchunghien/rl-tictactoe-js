@@ -1,28 +1,29 @@
-import { range, max, sample, pullAt, clone } from 'lodash';
-import { getValidMoves, boardToString, calculateReward, O } from './game';
-
+import { range, max, sample, pullAt, clone } from "lodash";
+import { getValidMoves, boardToString, calculateReward, O, X } from "./game";
 
 export class RandomAgent {
+  constructor({ player = X }) {
+    this.player = player;
+  }
 
   policy = (game) => {
     const { board } = game;
     const validMoves = getValidMoves(board);
     let A = range(0, 9, 0.0);
     for (let i = 0; i < validMoves.length; i++) {
-      const a = validMoves[i]
+      const a = validMoves[i];
       A[a] = 1.0 / validMoves.length;
     }
-    return A
-  }
+    return A;
+  };
 
-  newEpisode = () => {}
-  observe = () => {}
-  learn = () => {}
+  newEpisode = () => {};
+  observe = () => {};
+  learn = () => {};
 }
 
-
 export class SarsaAgent {
-  constructor(epsilon = 0.1, discount = 0.9, alpha=0.01, player=O) {
+  constructor({ epsilon = 0.1, discount = 0.9, alpha = 0.01, player = O }) {
     this.epsilon = epsilon;
     this.discount = discount;
     this.alpha = alpha;
@@ -37,7 +38,7 @@ export class SarsaAgent {
         }
 
         return target[name];
-      }
+      },
     });
   }
 
@@ -62,23 +63,35 @@ export class SarsaAgent {
     }
 
     return A;
-  }
+  };
 
-  learn = (state, action, nextState, nextAction) => {
-    const reward = calculateReward(nextState, this.player);
-    const stateString = boardToString(state.board);
-    const nextStateString = boardToString(nextState.board);
-    const nextStateValue = nextState.gameover ? 0 : this.Q[nextStateString][nextAction];
-    const tdTarget = reward + this.discount * nextStateValue;
-    const tdDelta = tdTarget - this.Q[stateString][action];
-    this.Q[stateString][action] += this.alpha * tdDelta;
-  }
+  learn = () => {
+    const memory = this.episode;
+    if (memory.length >= 2) {
+      const record1 = memory[memory.length - 2];
+      const record2 = memory[memory.length - 1];
+      const state = record1[0];
+      const action = record1[1];
+      const nextState = record2[0];
+      const nextAction = record2[1];
+
+      const reward = calculateReward(nextState, this.player);
+      const stateString = boardToString(state.board);
+      const nextStateString = boardToString(nextState.board);
+      const nextStateValue = nextState.gameover
+        ? 0
+        : this.Q[nextStateString][nextAction];
+      const tdTarget = reward + this.discount * nextStateValue;
+      const tdDelta = tdTarget - this.Q[stateString][action];
+      this.Q[stateString][action] += this.alpha * tdDelta;
+    }
+  };
 
   observe = (state, action) => {
     this.episode.push([state, action]);
-  }
+  };
 
   newEpisode = () => {
     this.episode = [];
-  }
+  };
 }

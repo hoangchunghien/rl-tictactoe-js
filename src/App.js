@@ -1,18 +1,47 @@
-import { useState } from "react";
-import { Row, Col, Card, InputNumber, Button, Table } from "antd";
+import { useState, useEffect } from "react";
+import {
+  Row,
+  Col,
+  Card,
+  InputNumber,
+  Button,
+  Table,
+  Select,
+  Divider,
+  Switch,
+} from "antd";
 
 import Game from "./components/Game";
-import { boardToString, checkGameover, initGame, move, X, O } from "./core/game";
-import { evaluate, PLAYLAST } from "./core/evaluation";
+import {
+  boardToString,
+  checkGameover,
+  initGame,
+  move,
+  X,
+  O,
+} from "./core/game";
+import { evaluate, train, PLAYLAST, PLAYFIRST } from "./core/evaluation";
 import { RandomAgent, SarsaAgent } from "./core/agent";
 import { select } from "weighted";
-import { range, max, map } from "lodash";
+import { range, filter, map, max, find } from "lodash";
 
 import "./App.css";
 
-const randomAgent = new RandomAgent();
-const sarsaAgent = new SarsaAgent();
+const { Option } = Select;
+
+const randomAgent = new RandomAgent({ player: X });
+const sarsaAgent = new SarsaAgent({});
 window.sarsaAgent = sarsaAgent;
+
+const player1Agents = [
+  { title: "Random Agent", agent: new RandomAgent({ player: X }) },
+  { title: "Sarsa Agent", agent: new SarsaAgent({ player: X }) },
+];
+
+const player2Agents = [
+  { title: "Random Agent", agent: new RandomAgent({ player: O }) },
+  { title: "Sarsa Agent", agent: new SarsaAgent({ player: O }) },
+];
 
 function App() {
   const [game, setGame] = useState(initGame());
@@ -24,88 +53,62 @@ function App() {
   const [trainingResults, setTraningResults] = useState([]);
   const [evaluateResults, setEvaluateResults] = useState([]);
 
+  const [player1, setPlayer1] = useState({
+    agent: player1Agents[1],
+    playmode: false,
+  });
+  const [player2, setPlayer2] = useState({
+    agent: player2Agents[1],
+    playmode: true,
+  });
+
+  useEffect(() => {
+    const { turn } = game;
+    let currentPlayer = null;
+    if (turn === X) {
+      currentPlayer = player1;
+    } else {
+      currentPlayer = player2;
+    }
+
+    if (currentPlayer.playmode) {
+      const {
+        agent: { agent },
+      } = currentPlayer;
+      let probs = agent.policy(game);
+      const maxProb = max(probs);
+      probs = map(probs, (it, index) => ({ index, prob: it }));
+      let action = select(filter(probs, (it) => it.prob == maxProb));
+      action = action.index;
+
+      console.log("Q");
+      console.log(agent.Q && agent.Q[boardToString(game.board)]);
+      console.log("A");
+      console.log(probs);
+
+      agent.observe(game, action);
+      agent.learn();
+
+      if (!game.gameover) {
+        const state = move(game, action);
+        setGame(state);
+      }
+    }
+  });
+
   const onMove = (location) => {
     const state = move(game, location);
-
-    const probs = sarsaAgent.policy(state);
-    console.log("Q");
-    console.log(sarsaAgent.Q[boardToString(state.board)]);
-    console.log("A");
-    console.log(probs);
-    const action = probs.indexOf(max(probs));
-
-    sarsaAgent.observe(state, action);
-    const memory = sarsaAgent.episode;
-    if (memory.length >= 2) {
-      const record1 = memory[memory.length - 2];
-      const record2 = memory[memory.length - 1];
-      sarsaAgent.learn(record1[0], record1[1], record2[0], record2[1]);
-    }
-
-    if (state.gameover) {
-      setGame(state);
-      return;
-    }
-
-    const nextState = move(state, action);
-    setGame(nextState);
+    setGame(state);
   };
 
   const training = (agent) => {
     setIsTraining(true);
-    const result = { win: 0, lose: 0, draw: 0, total: episode }
-    for (let i = 1; i <= episode; i++) {
-      setT(i);
-
-      let state = initGame();
-
-      // Random agent move first
-      let probs = randomAgent.policy(state);
-      let action = select(range(probs.length), probs);
-      state = move(state, action);
-
-      // Training agent take one action
-      probs = agent.policy(state);
-      action = select(range(probs.length), probs);
-
-      // Training
-      let done = false;
-      for (let j = 0; j <= 100; j++) {
-        const tmpState = move(state, action);
-        done = checkGameover(state.board);
-        if (done) break;
-
-        probs = randomAgent.policy(tmpState);
-        const randomAction = select(range(probs.length), probs);
-        const nextState = move(tmpState, randomAction);
-
-        let nextAction = -1;
-        if (!nextState.gameover) {
-          probs = agent.policy(nextState);
-          nextAction = select(range(probs.length), probs);
-        }
-
-        agent.learn(state, action, nextState, nextAction);
-
-        done = checkGameover(nextState.board);
-
-        state = nextState;
-        action = nextAction;
-        if (done) {
-          break;
-        }
-      }
-
-      if (state.winner) {
-        if (state.winner == O) {
-          result.win += 1;
-        } else {
-          result.lose += 1;
-        }
-      } else {
-        result.draw += 1;
-      }
-    }
+    const result = train({
+      agent: player2.agent.agent,
+      againstAgent: player1.agent.agent,
+      playType: PLAYLAST,
+      episodes: episode,
+    });
 
     setTraningResults([result, ...trainingResults]);
 
@@ -113,23 +116,119 @@ function App() {
   };
 
   const evaluateAgent = (agent) => {
-    const result = evaluate({ agent, againstAgent: randomAgent, playType: PLAYLAST, episodes: evaluateEpisode });
+    const result = evaluate({
+      agent,
+      againstAgent: randomAgent,
+      playType: PLAYLAST,
+      episodes: evaluateEpisode,
+    });
     setEvaluateResults([result, ...evaluateResults]);
-  }
+  };
 
   return (
     <div className="App">
       <Row justify="center" align="stretch" gutter={[16, 16]}>
         <Col>
           <Card style={{ width: 420, height: "100%" }} title="SETTINGS">
-            <Row>
-              <Col><div className="status">Player <b style={{border: "solid 1px", padding: "3px"}}>X</b></div></Col>
-              <Col></Col>
+            <Row gutter={[16, 16]} align="stretch">
+              <Col md={8}>
+                <div className="status">
+                  Player{" "}
+                  <b style={{ border: "solid 1px", padding: "1px" }}>X</b>
+                </div>
+              </Col>
+              <Col md={16}>
+                <div>
+                  <Select
+                    defaultValue={player1.agent.title}
+                    style={{ minWidth: "100%" }}
+                    onChange={(value) =>
+                      setPlayer1({
+                        ...player1,
+                        agent: find(player1Agents, { title: value }),
+                      })
+                    }
+                  >
+                    {map(player1Agents, ({ title }, ix) => (
+                      <Option key={ix} value={title}>
+                        {title}
+                      </Option>
+                    ))}
+                  </Select>
+                </div>
+              </Col>
             </Row>
 
             <Row>
-              <Col><div className="status">Player <b style={{border: "solid 1px", padding: "3px"}}>O</b></div></Col>
+              <Col md={8}></Col>
+              <Col md={16}>
+                <Row gutter={[8, 8]} justify="space-between">
+                  <Col>
+                    <Row gutter={8}>
+                      <Col>Auto</Col>
+                      <Col>
+                        <Switch size="small" checked={player1.playmode} onChange={e => setPlayer1({...player1, playmode: e})} />
+                      </Col>
+                    </Row>
+                  </Col>
+                  <Col>
+                    <Button size="small" disabled={player1.playmode}>Evaluate action</Button>
+                  </Col>
+                </Row>
+                <Row></Row>
+              </Col>
             </Row>
+
+            <Divider />
+
+            <Row gutter={[16, 16]}>
+              <Col md={8}>
+                <div className="status">
+                  Player{" "}
+                  <b style={{ border: "solid 1px", padding: "1px" }}>O</b>
+                </div>
+              </Col>
+
+              <Col md={16}>
+                <Select
+                  defaultValue={player2.agent.title}
+                  style={{ minWidth: "100%" }}
+                  onChange={(value) =>
+                    setPlayer2({
+                      ...player2,
+                      agent: find(player2Agents, { title: value }),
+                    })
+                  }
+                >
+                  {map(player2Agents, ({ title }, ix) => (
+                    <Option key={ix} value={title}>
+                      {title}
+                    </Option>
+                  ))}
+                </Select>
+              </Col>
+            </Row>
+
+            <Row>
+              <Col md={8}></Col>
+              <Col md={16}>
+                <Row gutter={[8, 8]} justify="space-between">
+                  <Col>
+                    <Row gutter={8}>
+                      <Col>Auto</Col>
+                      <Col>
+                        <Switch size="small" checked={player2.playmode} onChange={e => setPlayer2({...player2, playmode: e})} />
+                      </Col>
+                    </Row>
+                  </Col>
+                  <Col>
+                    <Button size="small" disabled={player2.playmode}>Evaluate action</Button>
+                  </Col>
+                </Row>
+                <Row></Row>
+              </Col>
+            </Row>
+
           </Card>
         </Col>
         <Col>
@@ -151,7 +250,8 @@ function App() {
                   <button
                     onClick={() => {
                       setGame(initGame());
-                      sarsaAgent.newEpisode();
+                      player1.agent.agent.newEpisode();
+                      player2.agent.agent.newEpisode();
                     }}
                   >
                     Reset Game
@@ -163,7 +263,12 @@ function App() {
         </Col>
       </Row>
 
-      <Row justify="center" align="stretch" gutter={[16, 16]} style={{marginTop: "16px"}}>
+      <Row
+        justify="center"
+        align="stretch"
+        gutter={[16, 16]}
+        style={{ marginTop: "16px" }}
+      >
         <Col>
           <Card title="TRAINING" style={{ width: 420 }}>
             <Row justify="center" align="middle" gutter={[8, 8]}>
@@ -198,10 +303,17 @@ function App() {
                     { title: "Win", dataIndex: "win", key: "win" },
                     { title: "Lose", dataIndex: "lose", key: "lose" },
                     { title: "Draw", dataIndex: "draw", key: "draw" },
-                    { title: "Total", dataIndex: "total", key: "total"},
+                    { title: "Total", dataIndex: "total", key: "total" },
                   ]}
-                  dataSource={map(trainingResults, (it, index) => ({...it, index}))}
-                  pagination={{pageSize: 3, hideOnSinglePage: true, showLessItems: true}}
+                  dataSource={map(trainingResults, (it, index) => ({
+                    ...it,
+                    index,
+                  }))}
+                  pagination={{
+                    pageSize: 3,
+                    hideOnSinglePage: true,
+                    showLessItems: true,
+                  }}
                 />
               </Col>
             </Row>
@@ -241,10 +353,17 @@ function App() {
                     { title: "Win", dataIndex: "win", key: "win" },
                     { title: "Lose", dataIndex: "lose", key: "lose" },
                     { title: "Draw", dataIndex: "draw", key: "draw" },
-                    { title: "Total", dataIndex: "total", key: "total"},
+                    { title: "Total", dataIndex: "total", key: "total" },
                   ]}
-                  dataSource={map(evaluateResults, (it, index) => ({...it, index}))}
-                  pagination={{pageSize: 3, hideOnSinglePage: true, showLessItems: true}}
+                  dataSource={map(evaluateResults, (it, index) => ({
+                    ...it,
+                    index,
+                  }))}
+                  pagination={{
+                    pageSize: 3,
+                    hideOnSinglePage: true,
+                    showLessItems: true,
+                  }}
                 />
               </Col>
             </Row>
