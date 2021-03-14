@@ -29,10 +29,6 @@ import "./App.css";
 
 const { Option } = Select;
 
-const randomAgent = new RandomAgent({ player: X });
-const sarsaAgent = new SarsaAgent({});
-window.sarsaAgent = sarsaAgent;
-
 const player1Agents = [
   { title: "Random Agent", agent: new RandomAgent({ player: X }) },
   { title: "Sarsa Agent", agent: new SarsaAgent({ player: X }) },
@@ -292,6 +288,8 @@ function App() {
                       setGame(initGame());
                       player1.agent.agent.newEpisode();
                       player2.agent.agent.newEpisode();
+                      setBestAction(null);
+                      setEvaluateBoard(map(range(0, 9), () => null));
                     }}
                   >
                     Reset Game
@@ -326,7 +324,7 @@ function App() {
                 <div>
                   <Button
                     type="primary"
-                    onClick={() => training(sarsaAgent)}
+                    onClick={() => training()}
                     disabled={isTraining}
                   >
                     Simulate
@@ -377,7 +375,7 @@ function App() {
                 <div>
                   <Button
                     type="primary"
-                    onClick={() => evaluateAgent(sarsaAgent)}
+                    onClick={() => evaluateAgent()}
                   >
                     Evaluate
                   </Button>
