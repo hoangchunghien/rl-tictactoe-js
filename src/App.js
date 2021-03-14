@@ -21,7 +21,7 @@ import {
   O,
 } from "./core/game";
 import { evaluate, train, PLAYLAST, PLAYFIRST } from "./core/evaluation";
-import { RandomAgent, SarsaAgent, MorteCarloAgent } from "./core/agent";
+import { RandomAgent, SarsaAgent, MorteCarloAgent, QLearningAgent } from "./core/agent";
 import { select } from "weighted";
 import { range, filter, map, max, find } from "lodash";
 
@@ -33,12 +33,14 @@ const player1Agents = [
   { title: "Random Agent", agent: new RandomAgent({ player: X }) },
   { title: "Monte Carlo Agent", agent: new MorteCarloAgent({ player: X })},
   { title: "Sarsa Agent", agent: new SarsaAgent({ player: X }) },
+  { title: "Q-Learning Agent", agent: new QLearningAgent({ player: X }) },
 ];
 
 const player2Agents = [
   { title: "Random Agent", agent: new RandomAgent({ player: O }) },
   { title: "Monte Carlo Agent", agent: new MorteCarloAgent({ player: O })},
   { title: "Sarsa Agent", agent: new SarsaAgent({ player: O }) },
+  { title: "Q-Learning Agent", agent: new QLearningAgent({ player: O }) },
 ];
 
 function App() {
