@@ -65,6 +65,7 @@ function App() {
   const [evaluateBoard, setEvaluateBoard] = useState(
     map(range(0, 9), () => null)
   );
+  const [bestAction, setBestAction] = useState(null);
 
   useEffect(() => {
     const { turn } = game;
@@ -136,6 +137,13 @@ function App() {
       score = agent.Q[boardToString(game.board)];
     }
     setEvaluateBoard(score);
+
+    let probs = agent.policy(game);
+    const maxProb = max(probs);
+    probs = map(probs, (it, index) => ({ index, prob: it }));
+    let action = select(filter(probs, (it) => it.prob == maxProb));
+    action = action.index;
+    setBestAction(action);
   };
 
   return (
@@ -267,7 +275,7 @@ function App() {
           <Card style={{ width: 420 }}>
             <Row justify="center" align="middle" gutter={[16, 16]}>
               <Col>
-                <Game {...game} onMove={onMove} evaluateBoard={evaluateBoard} />
+                <Game {...game} onMove={onMove} evaluateBoard={evaluateBoard} bestAction={bestAction} />
               </Col>
             </Row>
 
