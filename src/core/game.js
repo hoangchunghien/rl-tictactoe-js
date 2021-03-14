@@ -1,4 +1,4 @@
-import { every, filter } from 'lodash';
+import { every } from 'lodash';
 
 export const X = 'X';
 export const O = 'O';

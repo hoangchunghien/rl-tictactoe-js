@@ -21,7 +21,7 @@ import {
   O,
 } from "./core/game";
 import { evaluate, train, PLAYLAST, PLAYFIRST } from "./core/evaluation";
-import { RandomAgent, SarsaAgent } from "./core/agent";
+import { RandomAgent, SarsaAgent, MorteCarloAgent } from "./core/agent";
 import { select } from "weighted";
 import { range, filter, map, max, find } from "lodash";
 
@@ -31,11 +31,13 @@ const { Option } = Select;
 
 const player1Agents = [
   { title: "Random Agent", agent: new RandomAgent({ player: X }) },
+  { title: "Monte Carlo Agent", agent: new MorteCarloAgent({ player: X })},
   { title: "Sarsa Agent", agent: new SarsaAgent({ player: X }) },
 ];
 
 const player2Agents = [
   { title: "Random Agent", agent: new RandomAgent({ player: O }) },
+  { title: "Monte Carlo Agent", agent: new MorteCarloAgent({ player: O })},
   { title: "Sarsa Agent", agent: new SarsaAgent({ player: O }) },
 ];
 
@@ -50,11 +52,11 @@ function App() {
   const [evaluateResults, setEvaluateResults] = useState([]);
 
   const [player1, setPlayer1] = useState({
-    agent: player1Agents[1],
+    agent: player1Agents[0],
     playmode: false,
   });
   const [player2, setPlayer2] = useState({
-    agent: player2Agents[1],
+    agent: player2Agents[2],
     playmode: true,
   });
 
@@ -146,7 +148,7 @@ function App() {
     <div className="App">
       <Row justify="center" align="stretch" gutter={[16, 16]}>
         <Col>
-          <Card style={{ width: 420, height: "100%" }} title="SETTINGS">
+          <Card style={{ width: 360, height: "100%" }} title="SETTINGS">
             <Row gutter={[16, 16]} align="stretch">
               <Col md={8}>
                 <div className="status">
@@ -268,7 +270,7 @@ function App() {
           </Card>
         </Col>
         <Col>
-          <Card style={{ width: 420 }}>
+          <Card style={{ width: 360 }}>
             <Row justify="center" align="middle" gutter={[16, 16]}>
               <Col>
                 <Game {...game} onMove={onMove} evaluateBoard={evaluateBoard} bestAction={bestAction} />
@@ -308,7 +310,7 @@ function App() {
         style={{ marginTop: "16px" }}
       >
         <Col>
-          <Card title="TRAINING" style={{ width: 420 }}>
+          <Card title="TRAINING" style={{ width: 360 }}>
             <Row justify="center" align="middle" gutter={[8, 8]}>
               <Col>Episodes</Col>
               <Col>
@@ -359,7 +361,7 @@ function App() {
         </Col>
 
         <Col>
-          <Card title="EVALUATE" style={{ width: 420 }}>
+          <Card title="EVALUATE" style={{ width: 360 }}>
             <Row justify="center" align="middle" gutter={[8, 8]}>
               <Col>Episodes</Col>
               <Col>

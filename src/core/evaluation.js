@@ -56,10 +56,13 @@ export const train = ({
     for (let j = 0; j <= 100; j++) {
       const { turn } = state;
       let player = null;
+      let opponent = null;
       if (turn === playType) {
         player = agent;
+        opponent = againstAgent;
       } else {
         player = againstAgent;
+        opponent = agent;
       }
       let probs = player.policy(state);
       let action = !state.gameover ? select(range(probs.length), probs) : -1;
@@ -68,6 +71,10 @@ export const train = ({
 
       if (!state.gameover) {
         state = move(state, action);
+      } else {
+        opponent.observe(state, -1);
+        opponent.learn();
+        break;
       }
     }
 
