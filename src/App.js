@@ -107,7 +107,7 @@ function App() {
     setGame(state);
   };
 
-  const training = (agent) => {
+  const training = () => {
     setIsTraining(true);
     const result = train({
       agent: player2.agent.agent,
@@ -121,10 +121,10 @@ function App() {
     setIsTraining(false);
   };
 
-  const evaluateAgent = (agent) => {
+  const evaluateAgent = () => {
     const result = evaluate({
-      agent,
-      againstAgent: randomAgent,
+      agent: player2.agent.agent,
+      againstAgent: player1.agent.agent,
       playType: PLAYLAST,
       episodes: evaluateEpisode,
     });
@@ -340,8 +340,8 @@ function App() {
                 <Table
                   columns={[
                     { title: "#", dataIndex: "index", key: "index" },
-                    { title: "Win", dataIndex: "win", key: "win" },
-                    { title: "Lose", dataIndex: "lose", key: "lose" },
+                    { title: "X Win", dataIndex: "X", key: "X" },
+                    { title: "O Win", dataIndex: "O", key: "O" },
                     { title: "Draw", dataIndex: "draw", key: "draw" },
                     { title: "Total", dataIndex: "total", key: "total" },
                   ]}
@@ -390,8 +390,8 @@ function App() {
                 <Table
                   columns={[
                     { title: "#", dataIndex: "index", key: "index" },
-                    { title: "Win", dataIndex: "win", key: "win" },
-                    { title: "Lose", dataIndex: "lose", key: "lose" },
+                    { title: "X Win", dataIndex: "X", key: "X" },
+                    { title: "O Win", dataIndex: "O", key: "O" },
                     { title: "Draw", dataIndex: "draw", key: "draw" },
                     { title: "Total", dataIndex: "total", key: "total" },
                   ]}
